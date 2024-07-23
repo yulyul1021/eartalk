@@ -52,14 +52,13 @@ class AudioCreate(SQLModel):
 
 class Audio(AudioBase, table=True):
     id:             int | None = Field(default=None, primary_key=True)
-    owner_id:       int | None = Field(default=None, foreign_key="user.id", nullable=False)
+    owner_id:       int | None = Field(default=None, foreign_key="user.id")
     owner:          User | None = Relationship(back_populates="audios")
     create_date:    datetime
 
 
 class AudioPublic(AudioBase):
     id:         int
-    owner_id:   int
 
 
 class Message(SQLModel):
