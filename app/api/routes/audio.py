@@ -31,10 +31,10 @@ async def create_audio(
     # TODO 원본 wav 저장
     # TODO 가공 wav 저장
     audio = Audio.model_validate({
-        "text":         "임시 text입니다.",
-        "original":     settings.ORIGINAL_AUDIO_DIR + str(uuid.uuid4()) + ".wav",
-        "processed":    settings.PROCESSED_AUDIO_DIR + str(uuid.uuid4()) + ".wav",
-        "create_date":  datetime.now()
+        "text":                 "임시 text입니다.",
+        "original_filepath":    settings.ORIGINAL_AUDIO_DIR + str(uuid.uuid4()) + ".wav",
+        "processed_filepath":   settings.PROCESSED_AUDIO_DIR + str(uuid.uuid4()) + ".wav",
+        "create_date":          datetime.now()
     }, update={"owner_id": current_user.id if current_user else None})
     session.add(audio)
     session.commit()

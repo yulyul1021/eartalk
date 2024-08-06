@@ -1,11 +1,13 @@
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
+from sqlalchemy import func
+from sqlmodel import select
 
 from app import crud
 from app.api.dependencies import SessionDep, CurrentUser
 from app.core.security import verify_password, get_password_hash
-from app.models import UserCreate, UserRegister, UserPublic, Message, UpdatePassword
+from app.models import UserCreate, UserRegister, UserPublic, Message, UpdatePassword, AudiosPublic, Audio
 
 router = APIRouter()
 
@@ -54,3 +56,20 @@ def update_password(
     return Message(message="비밀번호가 성공적으로 변경되었습니다.")
 
 
+@router.get("/me", response_model=UserPublic)
+def read_user_me(current_user: CurrentUser) -> Any:
+    """
+    Get current user.
+    """
+    return current_user
+
+
+@router.get("/me/audios", response_model=AudiosPublic)
+def read_audio_list(session: SessionDep, current_user: CurrentUser) -> Any:
+    """
+    current_user의 모든 녹음 내역
+    """
+    statement = select(Audio).where(Audio.owner_id == current_user.id)
+    audios = session.exec(statement).all()
+    count = session.exec(select(func.count()).select_from(statement.subquery())).one()
+    return AudiosPublic(data=audios, count=count)

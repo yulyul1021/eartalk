@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 
 from fastapi import UploadFile
 from pydantic import EmailStr
@@ -41,8 +42,8 @@ class UserPublic(UserBase):
 
 class AudioBase(SQLModel):
     text:       str
-    original:   str # filepath
-    processed:  str # filepath
+    original_filepath:   str # filepath
+    processed_filepath:  str # filepath
 
 
 class AudioCreate(SQLModel):
@@ -59,6 +60,11 @@ class Audio(AudioBase, table=True):
 
 class AudioPublic(AudioBase):
     id:         int
+
+
+class AudiosPublic(SQLModel):
+    data: List[AudioPublic] | None
+    count: int
 
 
 class Message(SQLModel):
