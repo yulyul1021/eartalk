@@ -11,7 +11,7 @@ from app.models import AudioPublic, Audio
 router = APIRouter()
 
 
-@router.post("/", response_model=AudioPublic)
+@router.post("/audio", response_model=AudioPublic)
 async def create_audio(
         *, session: SessionDep, current_user: OptionalCurrentUser,
         input_text: Annotated[str | None, Form()] = None,

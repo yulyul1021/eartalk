@@ -5,10 +5,12 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app import crud
-from app.api.dependencies import SessionDep
+from app.api.dependencies import SessionDep, QueryDep
 from app.core import security
 from app.core.config import settings
 from app.models import Token, Message
+from app.utils.kakao_manager import kakao_api
+from app.utils.naver_manager import naver_api
 
 router = APIRouter()
 
@@ -32,6 +34,36 @@ def login_access_token(
             user.id, expires_delta=access_token_expires
         )
     )
+
+
+@router.post("/login/kakao-login")
+async def login_kakao_token(
+    session: SessionDep, code: QueryDep
+) -> Token:
+    """
+    OAuth2 compatible token login, get an access token for future requests
+    """
+    kakao_token = await kakao_api.get_token(code) # 이거 버리고 새로 발급할 것
+    user_info = await kakao_api.get_user_info(kakao_token)
+    # user_info에서 이메일 가져와서 회원 조회 해서 있으면 토큰발급
+    # 없으면 회원가입 시키고 토큰 발급
+
+
+@router.post("/login/naver-login")
+async def login_naver_token(
+    session: SessionDep, code: QueryDep
+) -> Token:
+    naver_token = await naver_api.get_token(code)  # 이거 버리고 새로 발급할 것
+    user_info = await naver_api.get_user_info(naver_token)
+    # user_info에서 이메일 가져와서 회원 조회 해서 있으면 토큰발급
+    # 없으면 회원가입 시키고 토큰 발급
+
+
+@router.post("/login/google-login")
+async def login_google_token(
+    session: SessionDep, code: QueryDep
+) -> Token:
+    pass
 
 
 # 비밀번호 찾기
