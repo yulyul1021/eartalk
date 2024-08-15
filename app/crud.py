@@ -22,6 +22,13 @@ def get_user_by_email(*, session: Session, email: str) -> User | None:
     return session_user
 
 
+def update_password(*, session: Session, current_user: User, new_password: str) -> None:
+    hashed_password = get_password_hash(new_password)
+    current_user.hashed_password = hashed_password
+    session.add(current_user)
+    session.commit()
+
+
 def authenticate(*, session: Session, email: str, password: str) -> User | None:
     db_user = get_user_by_email(session=session, email=email)
     if not db_user:

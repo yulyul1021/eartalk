@@ -49,10 +49,7 @@ def update_password(
             status_code=400,
             detail="비밀번호가 다릅니다.",
         )
-    hashed_password = get_password_hash(body.new_password)
-    current_user.hashed_password = hashed_password
-    session.add(current_user)
-    session.commit()
+    crud.update_password(session=session, current_user=current_user, new_password=body.new_password)
     return Message(message="비밀번호가 성공적으로 변경되었습니다.")
 
 

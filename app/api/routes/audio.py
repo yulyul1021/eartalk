@@ -4,7 +4,7 @@ from typing import Any, Annotated
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Form
 
-from app.api.dependencies import CurrentUser, SessionDep, OptionalCurrentUser
+from app.api.dependencies import SessionDep, OptionalCurrentUser
 from app.core.config import settings
 from app.models import AudioPublic, Audio
 
