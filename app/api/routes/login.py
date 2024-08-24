@@ -68,6 +68,7 @@ async def continue_kakao_token(
         access_token=security.create_access_token(
             user.id, expires_delta=access_token_expires
         )
+    )
 
 
 @router.post("/login/naver-login")
