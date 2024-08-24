@@ -6,6 +6,4 @@ from app.core.config import settings
 
 app = FastAPI()
 app.include_router(api_router)
-app.mount(settings.AUDIO_DIR,
-                 StaticFiles(directory=settings.AUDIO_DIR_NAME),
-                 name=settings.AUDIO_DIR_NAME)
+app.mount(f'/{settings.AUDIO_DIR}', StaticFiles(directory=settings.AUDIO_DIR_NAME), name=settings.AUDIO_DIR_NAME)

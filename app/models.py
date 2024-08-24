@@ -13,7 +13,8 @@ class UserBase(SQLModel):
 
 
 class UserCreate(UserBase):
-    password: str = Field(min_length=8, max_length=40)
+    oauth_id: str | None = Field(default=None, unique=True)  # 소셜 로그인용
+    password: str | None = Field(min_length=8, max_length=40)
 
 
 class UserRegister(SQLModel):
@@ -32,6 +33,7 @@ class UpdatePassword(SQLModel):
 
 class User(UserBase, table=True):
     id:                 int | None = Field(default=None, primary_key=True)
+    oauth_id:           str | None = Field(default=None, unique=True)   # 소셜 로그인용
     hashed_password:    str | None  # None -> 소셜 회원가입 시
     audios:             list["Audio"] = Relationship(back_populates="owner")
 

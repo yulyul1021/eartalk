@@ -8,9 +8,9 @@ from app import crud
 from app.api.dependencies import SessionDep, QueryDep
 from app.core import security
 from app.core.config import settings
-from app.models import Token, Message
+from app.models import Token, Message, UserCreate
 from app.utils.oauth import kakao_api, naver_api, google_api
-from app.utils.utils import generate_random_string
+from app.utils.utils import generate_random_string, send_email_for_password
 
 router = APIRouter()
 
@@ -37,7 +37,7 @@ def login_access_token(
 
 
 @router.post("/login/kakao-login")
-async def login_kakao_token(
+async def continue_kakao_token(
     session: SessionDep, code: QueryDep
 ) -> Token:
     """
@@ -45,12 +45,33 @@ async def login_kakao_token(
     """
     kakao_token = await kakao_api.get_token(code) # 이거 버리고 새로 발급할 것
     user_info = await kakao_api.get_user_info(kakao_token)
-    # user_info에서 이메일 가져와서 회원 조회 해서 있으면 토큰발급
-    # 없으면 회원가입 시키고 토큰 발급
+    user_info = user_info.get('kakao_account')
+
+    user_oauth_id = f'kakao-{user_info.get('id')}'
+    user_birthyear = user_info.get('birthyear') # YYYY
+    user_birthday = user_info.get('birthday') # MMDD
+    user_gender = user_info.get('gender') # str: female or male
+
+    # user_info에서 고유id 가져와서 회원 조회 해서 있으면 토큰발급
+    user = crud.get_user_by_oauth_id(session=session, id=user_oauth_id)
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    if not user: # 없으면 회원가입 시키고 토큰 발급
+        user_create = UserCreate.model_validate({
+            "email":    None,
+            "birth":    None,   # 적절히 파싱 필요
+            "sex":      None,
+            "oauth_id": user_oauth_id,
+            "password": None,
+        })
+        user = crud.create_user(session=session, user_create=user_create)
+    return Token(
+        access_token=security.create_access_token(
+            user.id, expires_delta=access_token_expires
+        )
 
 
 @router.post("/login/naver-login")
-async def login_naver_token(
+async def continue_naver_token(
     session: SessionDep, code: QueryDep
 ) -> Token:
     naver_token = await naver_api.get_token(code)  # 이거 버리고 새로 발급할 것
@@ -60,7 +81,7 @@ async def login_naver_token(
 
 
 @router.post("/login/google-login")
-async def login_google_token(
+async def continue_google_token(
     session: SessionDep, code: QueryDep
 ) -> Token:
     google_token = await google_api.get_token(code)  # 이거 버리고 새로 발급할 것
@@ -83,5 +104,5 @@ def reset_password(session: SessionDep, email: str) -> Message:
         )
     temp_password = generate_random_string()
     crud.update_password(session=session, current_user=user, new_password=temp_password)
-    # TODO 메일 전송
+    send_email_for_password(receiver_email=email, new_password=temp_password)
     return Message(message="메일로 임시 비밀번호가 발송되었습니다. 메일함을 확인해주세요.")

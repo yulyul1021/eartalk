@@ -22,6 +22,12 @@ def get_user_by_email(*, session: Session, email: str) -> User | None:
     return session_user
 
 
+def get_user_by_oauth_id(*, session: Session, id: str) -> User | None:
+    statement = select(User).where(User.oauth_id == id)
+    session_user = session.exec(statement).first()
+    return session_user
+
+
 def update_password(*, session: Session, current_user: User, new_password: str) -> None:
     hashed_password = get_password_hash(new_password)
     current_user.hashed_password = hashed_password

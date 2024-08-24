@@ -1,5 +1,5 @@
 import uuid
-
+import json
 import httpx # aiohttp 로 변경해야함
 import os
 from dotenv import load_dotenv
