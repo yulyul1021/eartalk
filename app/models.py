@@ -7,9 +7,9 @@ from sqlmodel import Field, Relationship, SQLModel
 
 
 class UserBase(SQLModel):
-    email:  EmailStr | None = Field(unique=True, max_length=255)
-    birth:  datetime
-    sex:    bool   # True male False female
+    email:      EmailStr | None = Field(unique=True, max_length=255)
+    birthyear:  str | None = Field(min_length=4, max_length=4)
+    sex:        bool   # True male False female
 
 
 class UserCreate(UserBase):
@@ -21,7 +21,7 @@ class UserRegister(SQLModel):
     email:              EmailStr | None = Field(unique=True, max_length=255)
     password:           str = Field(min_length=8, max_length=40)
     verify_password:    str = Field(min_length=8, max_length=40)
-    birth:              datetime
+    birthyear:          str | None = Field(min_length=4, max_length=4)
     sex:                bool  # True: male, False: female
 
 

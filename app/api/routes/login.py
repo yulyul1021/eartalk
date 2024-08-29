@@ -49,7 +49,6 @@ async def continue_kakao_token(
 
     user_oauth_id = f'kakao-{user_info.get('id')}'
     user_birthyear = user_info.get('birthyear') # YYYY
-    user_birthday = user_info.get('birthday') # MMDD
     user_gender = user_info.get('gender') # str: female or male
 
     # user_info에서 고유id 가져와서 회원 조회 해서 있으면 토큰발급
@@ -57,11 +56,11 @@ async def continue_kakao_token(
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     if not user: # 없으면 회원가입 시키고 토큰 발급
         user_create = UserCreate.model_validate({
-            "email":    None,
-            "birth":    None,   # 적절히 파싱 필요
-            "sex":      None,
-            "oauth_id": user_oauth_id,
-            "password": None,
+            "email":        None,
+            "birthyear":    user_birthyear,   # 적절히 파싱 필요
+            "sex":          True if user_gender == "male" else False,
+            "oauth_id":     user_oauth_id,
+            "password":     None,
         })
         user = crud.create_user(session=session, user_create=user_create)
     return Token(

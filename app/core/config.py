@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 365
     SECRET_KEY: str = os.getenv('SECRET_KEY')
 
-    SMTP_SSL_PORT               = 465  # SSL connection
+    SMTP_SSL_PORT:          int = 465  # SSL connection
     SMTP_SERVER:            str = os.getenv('SMTP_SERVER')
     SENDER_EMAIL:           str = os.getenv('SENDER_EMAIL')
     SENDER_PASSWORD:        str = os.getenv('SENDER_PASSWORD')
