@@ -77,11 +77,10 @@ class NaverAPI:
 class GoogleAPI:
     def __init__(self):
         # 구글 API 관련 정보를 환경 변수에서 로드
-        self.client_id = os.getenv('')
-        self.client_secret = os.getenv('')
-        self.redirect_uri = os.getenv('')
-        self.rest_api_key = os.getenv('')
-        self.logout_redirect_uri = os.getenv('')
+        self.client_id = os.getenv('GOOGLE_CLIENT_ID')
+        self.client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
+        self.redirect_uri = os.getenv('GOOGLE_REDIRECT_URI')
+        self.api_key = os.getenv('GOOGLE_API_KEY')
 
     async def get_token(self, code):
         # 구글로부터 인증 코드를 사용해 액세스 토큰 요청
@@ -100,6 +99,16 @@ class GoogleAPI:
         return result
 
     async def get_user_info(self, access_token):
+        # 액세스 토큰을 사용하여 구글로부터 사용자 정보(성별, 생일) 요청
+        userinfo_endpoint = f'https://people.googleapis.com/v1/people/me?personFields=genders%2Cbirthdays&key={self.api_key}'
+        headers = {'Authorization': f'Bearer {access_token}'}
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(userinfo_endpoint, headers=headers)
+        return response.json() if response.status_code == 200 else None
+
+
+    async def get_user_id(self, access_token):
         # 액세스 토큰을 사용하여 구글로부터 사용자 정보 요청
         userinfo_endpoint = 'https://www.googleapis.com/userinfo/v2/me'
         headers = {'Authorization': f'Bearer {access_token}'}

@@ -44,10 +44,10 @@ async def continue_kakao_token(
     OAuth2 compatible token login, get an access token for future requests
     """
     kakao_token = await kakao_api.get_token(code) # 이거 버리고 새로 발급할 것
-    user_info = await kakao_api.get_user_info(kakao_token)
-    user_info = user_info.get('kakao_account')
-
+    user_info = await kakao_api.get_user_info(kakao_token)  # TODO 정보 가져올 때 예외처리
     user_oauth_id = f'kakao-{user_info.get('id')}'
+
+    user_info = user_info.get('kakao_account')
     user_birthyear = user_info.get('birthyear') # YYYY
     user_gender = user_info.get('gender') # str: female or male
 
@@ -57,7 +57,7 @@ async def continue_kakao_token(
     if not user: # 없으면 회원가입 시키고 토큰 발급
         user_create = UserCreate.model_validate({
             "email":        None,
-            "birthyear":    user_birthyear,   # 적절히 파싱 필요
+            "birthyear":    user_birthyear,
             "sex":          True if user_gender == "male" else False,
             "oauth_id":     user_oauth_id,
             "password":     None,
@@ -76,8 +76,30 @@ async def continue_naver_token(
 ) -> Token:
     naver_token = await naver_api.get_token(code)  # 이거 버리고 새로 발급할 것
     user_info = await naver_api.get_user_info(naver_token)
-    # user_info에서 이메일 가져와서 회원 조회 해서 있으면 토큰발급
-    # 없으면 회원가입 시키고 토큰 발급
+    user_info = user_info.get('response')
+
+    user_oauth_id = f'naver-{user_info.get('id')}'
+
+    user_birthyear = user_info.get('birthyear') # YYYY
+    user_gender = user_info.get('gender') # str: female or male
+
+    # user_info에서 고유id 가져와서 회원 조회 해서 있으면 토큰발급
+    user = crud.get_user_by_oauth_id(session=session, id=user_oauth_id)
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    if not user: # 없으면 회원가입 시키고 토큰 발급
+        user_create = UserCreate.model_validate({
+            "email":        None,
+            "birthyear":    user_birthyear,
+            "sex":          True if user_gender == 'M' else False if user_gender == 'F' else None,
+            "oauth_id":     user_oauth_id,
+            "password":     None,
+        })
+        user = crud.create_user(session=session, user_create=user_create)
+    return Token(
+        access_token=security.create_access_token(
+            user.id, expires_delta=access_token_expires
+        )
+    )
 
 
 @router.post("/login/google-login")
