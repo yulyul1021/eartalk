@@ -107,15 +107,14 @@ class GoogleAPI:
             response = await client.get(userinfo_endpoint, headers=headers)
         return response.json() if response.status_code == 200 else None
 
-
-    async def get_user_id(self, access_token):
-        # 액세스 토큰을 사용하여 구글로부터 사용자 정보 요청
-        userinfo_endpoint = 'https://www.googleapis.com/userinfo/v2/me'
-        headers = {'Authorization': f'Bearer {access_token}'}
-
-        async with httpx.AsyncClient() as client:
-            response = await client.get(userinfo_endpoint, headers=headers)
-        return response.json() if response.status_code == 200 else None
+    # async def get_user_id(self, access_token):
+    #     # 액세스 토큰을 사용하여 구글로부터 사용자 정보 요청
+    #     userinfo_endpoint = 'https://www.googleapis.com/userinfo/v2/me'
+    #     headers = {'Authorization': f'Bearer {access_token}'}
+    #
+    #     async with httpx.AsyncClient() as client:
+    #         response = await client.get(userinfo_endpoint, headers=headers)
+    #     return response.json() if response.status_code == 200 else None
 
 
 kakao_api = KakaoAPI()
