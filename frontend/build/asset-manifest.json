@@ -1,0 +1,18 @@
+{
+  "files": {
+    "main.css": "/static/css/main.0dad3023.css",
+    "main.js": "/static/js/main.d709db99.js",
+    "static/js/453.0f2941ec.chunk.js": "/static/js/453.0f2941ec.chunk.js",
+    "static/media/NaverLogo.png": "/static/media/NaverLogo.331e94f7838a7141601c.png",
+    "static/media/GoogleLogo.png": "/static/media/GoogleLogo.1bf82e4cf13151cf7a86.png",
+    "static/media/EarTalkLOGO.png": "/static/media/EarTalkLOGO.98cf993142016a51cc18.png",
+    "index.html": "/index.html",
+    "main.0dad3023.css.map": "/static/css/main.0dad3023.css.map",
+    "main.d709db99.js.map": "/static/js/main.d709db99.js.map",
+    "453.0f2941ec.chunk.js.map": "/static/js/453.0f2941ec.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.0dad3023.css",
+    "static/js/main.d709db99.js"
+  ]
+}

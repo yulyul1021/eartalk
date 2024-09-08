@@ -1,0 +1,8 @@
+.idea
+*.pyc
+__pycache__
+eartalk.db
+.env
+.venv
+audio/
+log/
