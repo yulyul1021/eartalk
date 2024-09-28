@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from typing import Any, Annotated
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Form
+from sqlmodel import select
 from starlette.responses import FileResponse
 
 from app.api.dependencies import SessionDep, OptionalCurrentUser
@@ -77,7 +78,8 @@ async def create_audio(
         "text":                 input_text,
         "original_filepath":    original_file_path,
         "processed_filepath":   processed_file_path,
-        "create_date":          datetime.now()
+        "create_date":          datetime.now(),
+        "identifier":           utils.generate_uuid()
     }, update={"owner_id": current_user.id if current_user else None})
     session.add(audio)
     session.commit()
@@ -85,7 +87,15 @@ async def create_audio(
     return audio
 
 
-# 로그인 안했을때
+@router.get("/audio/{identifier}", response_model=AudioPublic)
+async def get_file_info(session: SessionDep, identifier: str) -> Any:
+    '''
+    식별자로 파일 정보 가져오기
+    '''
+    statement = select(Audio).where(Audio.identifier == identifier)
+    audio = session.exec(statement).first()
+    return audio
+
 
 @router.get("/audio/{folder}/{file_type}/{filename}")
 async def get_file(folder: str, file_type: str, filename: str):

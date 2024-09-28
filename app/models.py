@@ -44,6 +44,7 @@ class AudioBase(SQLModel):
     text:               str
     original_filepath:  str # filepath
     processed_filepath: str # filepath
+    identifier:         str = Field(unique=True)    # 보안상의 이유로 PK X
 
 
 class AudioCreate(SQLModel):

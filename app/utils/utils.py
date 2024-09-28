@@ -6,6 +6,7 @@ import os
 import secrets
 import string
 import smtplib, ssl
+import uuid
 from datetime import datetime
 
 import speech_recognition as sr
@@ -21,6 +22,10 @@ def generate_random_string(length: str = 8) -> str:
     res = ''.join(secrets.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits)
                   for _ in range(length))
     return res
+
+
+def generate_uuid():
+    return str(uuid.uuid4())
 
 
 # user_id를 해시하여 고유 폴더 이름 생성
