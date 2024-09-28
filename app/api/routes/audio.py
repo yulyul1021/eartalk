@@ -85,6 +85,8 @@ async def create_audio(
     return audio
 
 
+# 로그인 안했을때
+
 @router.get("/audio/{folder}/{file_type}/{filename}")
 async def get_file(folder: str, file_type: str, filename: str):
     file_path = os.path.join("audio", folder, file_type, filename)
