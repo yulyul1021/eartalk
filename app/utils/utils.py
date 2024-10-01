@@ -33,7 +33,7 @@ def get_hashed_folder_name(id: int) -> str:
     return hashlib.sha256(str(id).encode()).hexdigest()
 
 
-def speech_to_text(audio) -> str:
+def temp_speech_to_text(audio) -> str:
     r = sr.Recognizer()
     read_audio = sr.AudioFile(audio)
     with read_audio as source:
@@ -42,7 +42,7 @@ def speech_to_text(audio) -> str:
     return out_text
 
 
-def text_to_speech(in_text: str) -> UploadFile:
+def temp_text_to_speech(in_text: str) -> UploadFile:
     tts = gTTS(text=in_text, lang='ko')
     wav_data = io.BytesIO()
     tts.write_to_fp(wav_data)

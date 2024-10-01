@@ -12,7 +12,7 @@ from app.api.dependencies import SessionDep, OptionalCurrentUser
 from app.core.config import settings
 from app.models import AudioPublic, Audio
 from app.utils import utils
-from app.utils.utils import get_hashed_folder_name, text_to_speech
+from app.utils.utils import get_hashed_folder_name
 
 router = APIRouter()
 
@@ -24,11 +24,11 @@ def index():
 
 @router.post("/audio", response_model=AudioPublic)
 async def create_audio(
-        *,
-        session: SessionDep,
-        current_user: OptionalCurrentUser,
-        input_text: Annotated[str | None, Form()] = None,
-        audio: Annotated[UploadFile | None, File()] = None
+    *,
+    session: SessionDep,
+    current_user: OptionalCurrentUser,
+    input_text: Annotated[str | None, Form()] = None,
+    audio: Annotated[UploadFile | None, File()] = None
 ) -> Any:
     """
     Create new audio.
@@ -65,11 +65,11 @@ async def create_audio(
                 f.write(data)
         finally:
             await audio.close()  # 파일을 명시적으로 닫기
-        input_text = utils.speech_to_text(audio)    # FIXME 테스트용
+        input_text = utils.temp_speech_to_text(audio)    # FIXME 테스트용
 
     # FIXME 가공 로직 (임시)
     processed_file_path = os.path.join(processed_folder, f"{file_uuid}_processed.wav")
-    processed_audio = text_to_speech(input_text)
+    processed_audio = utils.temp_text_to_speech(input_text)
     data = processed_audio.file.read()  # 비동기 처리가 필요 없습니다.
     with open(processed_file_path, "wb") as f:
         f.write(data)
