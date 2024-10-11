@@ -1,17 +1,16 @@
 import os
-import uuid
 from datetime import datetime
 from typing import Any, Annotated
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, Form
-from sqlmodel import select
+from sqlmodel import select, col
 from starlette.responses import FileResponse
 
 from backend.app.api.dependencies import SessionDep, OptionalCurrentUser
 from backend.app.core.config import settings
 from backend.app.models import AudioPublic, Audio
 from backend.app.utils import utils
-from backend.app.utils.utils import get_hashed_folder_name
+from backend.app.utils.api_client import send_tts_request, send_stt_tts_request
 
 router = APIRouter()
 
@@ -24,66 +23,73 @@ def index():
 @router.post("/audio", response_model=AudioPublic)
 async def create_audio(
     *,
-    session: SessionDep,
-    current_user: OptionalCurrentUser,
-    input_text: Annotated[str | None, Form()] = None,
-    audio: Annotated[UploadFile | None, File()] = None
+    session:        SessionDep,
+    current_user:   OptionalCurrentUser,
+    input_text:     Annotated[str | None, Form()] = None,
+    audio:          Annotated[UploadFile | None, File()] = None
 ) -> Any:
     """
     Create new audio.
     """
-
     if not input_text and not audio:
         raise HTTPException(status_code=400, detail="텍스트 혹은 음성 둘 중 하나를 입력해주세요.")
     if input_text and audio:
         raise HTTPException(status_code=400, detail="텍스트 혹은 음성 둘 중 하나만 입력해주세요.")
 
-    # current_user가 없을 경우 id를 0으로 설정
-    user_id = current_user.id if current_user else 0
+    create_date = datetime.now()
+    file_paths = utils.create_file_path(create_date)
+    original_file_path = str(file_paths["original_file_path"])
+    processed_file_path = str(file_paths["processed_file_path"])
 
-    # 사용자별 폴더 경로 생성
-    user_folder_name = get_hashed_folder_name(user_id)
-    user_folder = os.path.join(settings.AUDIO_ROOT, user_folder_name)
-    original_folder = os.path.join(user_folder, "original")
-    processed_folder = os.path.join(user_folder, "processed")
+    if input_text and current_user:
+        # text input: ref 음성 추출
+        # current_user의 가장 최근 음성을 ref로 쓴다. 만약 없다면 기본 ref
+        statement = select(Audio).where(Audio.owner_id == current_user.id).order_by(col(Audio.id).desc())
+        ref_audio_path = session.exec(statement).first()
+        if ref_audio_path:
+            with open(ref_audio_path, "rb") as file:
+                ref_audio = file.read()
+        else:
+            ref_audio = utils.get_default_ref_audio(current_user)
 
-    # 폴더가 존재하지 않으면 생성
-    os.makedirs(original_folder, exist_ok=True)
-    os.makedirs(processed_folder, exist_ok=True)
+        # text input: AI 모델 서버로 TTS API 요청 보내기
+        try:
+            file = {'file': (audio.filename, ref_audio, audio.content_type)}
+            data = {'text': input_text, 'output_path': processed_file_path}
+            result = send_tts_request(settings.AI_REQUEST_URL, file, data)
+            processed_file_path = result["file_path"]
 
-    # UUID를 이용한 파일 이름 생성
-    file_uuid = str(uuid.uuid4())
-    original_file_path = os.path.join(original_folder, f"{file_uuid}.wav")
-    print(original_file_path)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"audio processing failed: {str(e)}")
 
-    # 원본 wav 저장
     if audio:
         try:
-            data = await audio.read()
+            # audio input: 원본 wav 저장
+            audio_data = await audio.read()
             with open(original_file_path, "wb") as f:
-                f.write(data)
-        finally:
-            await audio.close()  # 파일을 명시적으로 닫기
-        input_text = utils.temp_speech_to_text(audio)    # FIXME 테스트용
+                f.write(audio_data)
 
-    # FIXME 가공 로직 (임시)
-    processed_file_path = os.path.join(processed_folder, f"{file_uuid}_processed.wav")
-    processed_audio = utils.temp_text_to_speech(input_text)
-    data = processed_audio.file.read()  # 비동기 처리가 필요 없습니다.
-    with open(processed_file_path, "wb") as f:
-        f.write(data)
+            # audio input: AI 모델 서버로 STT + TTS 요청 보내기
+            files = {'file': (audio.filename, audio_data, audio.content_type)}
+            data = {'output_path': processed_file_path}
+            result = send_stt_tts_request(settings.AI_REQUEST_URL, files, data)
+            input_text = result["stt_result"]["text"]
+            processed_file_path = result["tts_result"]["file_path"]
 
-    audio = Audio.model_validate({
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"audio processing failed: {str(e)}")
+
+    audio_data = Audio.model_validate({
         "text":                 input_text,
         "original_filepath":    original_file_path,
         "processed_filepath":   processed_file_path,
-        "create_date":          datetime.now(),
+        "create_date":          create_date,
         "identifier":           utils.generate_uuid()
     }, update={"owner_id": current_user.id if current_user else None})
-    session.add(audio)
+    session.add(audio_data)
     session.commit()
-    session.refresh(audio)
-    return audio
+    session.refresh(audio_data)
+    return audio_data
 
 
 @router.get("/audio/{identifier}", response_model=AudioPublic)
@@ -96,11 +102,11 @@ async def get_file_info(session: SessionDep, identifier: str) -> Any:
     return audio
 
 
-@router.get("/audio/{folder}/{file_type}/{filename}")
-async def get_file(folder: str, file_type: str, filename: str):
-    file_path = os.path.join("audio", folder, file_type, filename)
+@router.get("/{file_path:path}")
+async def get_file(file_path: str):
+    # file_path = os.path.join("data", file_path)
 
     if os.path.exists(file_path):
-        return FileResponse(file_path)
+        return FileResponse(file_path, media_type="audio/wav")
     else:
         return {"error": "File not found"}

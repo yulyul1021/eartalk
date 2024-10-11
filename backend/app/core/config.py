@@ -20,9 +20,13 @@ class Settings(BaseSettings):
     SENDER_EMAIL:           str = os.getenv('SENDER_EMAIL')
     SENDER_PASSWORD:        str = os.getenv('SENDER_PASSWORD')
 
-    AUDIO_ROOT:             str = os.getenv('AUDIO_ROOT')
+    AI_REQUEST_URL:         str = os.getenv('AI_REQUEST_URL')
+    MEDIA_URL:              str = os.getenv('MEDIA_URL')
 
+    MEDIA_DIR:              str = os.getenv('MEDIA_DIR')
+    # AUDIO_ROOT:             str = os.getenv('AUDIO_ROOT')
     LOGFILE_ROOT:           str = os.getenv('LOGFILE_ROOT')
+    DEFAULT_REF_AUDIO_DIR:  str = os.getenv('DEFAULT_REF_AUDIO_DIR')
 
 
 settings = Settings()  # type: ignore

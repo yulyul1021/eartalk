@@ -6,3 +6,5 @@ eartalk.db
 .venv
 audio/
 log/
+.env_develop
+.gitignore

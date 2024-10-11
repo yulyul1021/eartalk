@@ -8,6 +8,7 @@ import string
 import smtplib
 import uuid
 from datetime import datetime
+from pathlib import Path
 
 import speech_recognition as sr
 from fastapi import UploadFile
@@ -16,6 +17,8 @@ from gtts import gTTS
 from backend.app.core.config import settings
 from email.message import EmailMessage
 from ssl import create_default_context
+
+from backend.app.models import User
 
 
 def generate_random_string(length: str = 8) -> str:
@@ -31,6 +34,47 @@ def generate_uuid():
 # user_id를 해시하여 고유 폴더 이름 생성
 def get_hashed_folder_name(id: int) -> str:
     return hashlib.sha256(str(id).encode()).hexdigest()
+
+
+# 저장할 파일 경로 생성
+def create_file_path(create_date: datetime):
+    # 인자로 받은 create_date를 yyyy/mm/dd/hhmmssSSS 형식으로 변환
+    formatted_time = create_date.strftime("%Y/%m/%d/%H%M%S%f")
+
+    # 디렉토리 경로 생성 (yyyy/mm/dd)
+    dir_path = Path(settings.MEDIA_DIR) / "/".join(formatted_time.split("/")[:-1])
+    dir_path.mkdir(parents=True, exist_ok=True)  # 디렉토리 없으면 생성
+
+    # 파일 전체 경로 생성 (원본 파일과 처리된 파일 두 가지)
+    original_file_name = f"{formatted_time}_original.wav"
+    processed_file_name = f"{formatted_time}_processed.wav"
+
+    # 짧은 파일명 생성 (hhmmssSSS)
+    short_original_file_name = f"{create_date.strftime('%H%M%S%f')}_original.wav"
+    short_processed_file_name = f"{create_date.strftime('%H%M%S%f')}_processed.wav"
+
+    # 파일 전체 경로와 짧은 파일명 리턴
+    return {
+        "original_file_path": dir_path / original_file_name,
+        "processed_file_path": dir_path / processed_file_name,
+        "short_original_file_name": short_original_file_name,
+        "short_processed_file_name": short_processed_file_name
+    }
+
+
+def get_default_ref_audio(user: User) -> bytes:
+    current_year = datetime.now().year
+    birth_year = int(user.birthyear)  # 문자열을 정수로 변환
+    age = current_year - birth_year
+
+    age_group = "young" if age <= 29 else "old"
+    gender = "male" if user.sex else "female"
+
+    full_file_path = os.path.join(settings.DEFAULT_REF_AUDIO_DIR, f"REF_{gender}_{age_group}.wav")
+
+    with open(full_file_path, "rb") as file:
+        file_content = file.read()
+    return file_content  # 파일 내용을 반환 (바이너리 데이터)
 
 
 def temp_speech_to_text(audio) -> str:
