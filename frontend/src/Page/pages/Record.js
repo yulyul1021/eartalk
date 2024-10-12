@@ -16,7 +16,7 @@ const Record = () => {
     if (!isAuthenticated) {
       navigate("/login");
     } else {
-      fetch("/users/me/audios", {
+      fetch("api/users/me/audios", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${sessionStorage.getItem("authToken")}`,

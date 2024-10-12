@@ -53,7 +53,7 @@ const Join = () => {
         sex: formData.gender === "male",
       };
 
-      const response = await fetch('/users/signup', {
+      const response = await fetch('api/users/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

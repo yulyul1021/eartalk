@@ -16,7 +16,7 @@ const Login = () => {
     setError(""); // 이전 오류 메시지 초기화
 
     try {
-      const response = await fetch('/login/access-token', {
+      const response = await fetch('api/login/access-token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'

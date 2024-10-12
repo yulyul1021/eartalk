@@ -100,13 +100,3 @@ async def get_file_info(session: SessionDep, identifier: str) -> Any:
     statement = select(Audio).where(Audio.identifier == identifier)
     audio = session.exec(statement).first()
     return audio
-
-
-@router.get("/{file_path:path}")
-async def get_file(file_path: str):
-    # file_path = os.path.join("data", file_path)
-
-    if os.path.exists(file_path):
-        return FileResponse(file_path, media_type="audio/wav")
-    else:
-        return {"error": "File not found"}

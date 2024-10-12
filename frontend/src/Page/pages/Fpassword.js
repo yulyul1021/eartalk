@@ -13,7 +13,7 @@ const Fpassword = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch(`/reset-password/${email}`, {
+      const response = await fetch(`api/reset-password/${email}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -16,7 +16,7 @@ const User = () => {
       navigate("/login"); // 로그인되어 있지 않으면 로그인 페이지로 리다이렉트
     } else {
       // 유저 정보를 가져오는 API 호출
-      fetch('/users/me', {
+      fetch('api/users/me', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -50,7 +50,7 @@ const User = () => {
 
   const handleDeleteAccount = () => {
     // 탈퇴 API 호출
-    fetch('/users/me', {
+    fetch('api/users/me', {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${authToken}`,

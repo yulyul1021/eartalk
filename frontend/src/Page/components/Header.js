@@ -46,7 +46,7 @@ const Header = () => {
 
   const handleLoginSubmit = async () => {
     try {
-      const response = await axios.post('/login/access-token', new URLSearchParams({
+      const response = await axios.post('api/login/access-token', new URLSearchParams({
         username,
         password,
       }), {

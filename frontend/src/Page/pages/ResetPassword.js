@@ -37,7 +37,7 @@ const ResetPassword = () => {
 
     // 비밀번호 변경 API 호출
     try {
-      const response = await fetch("/users/password", {
+      const response = await fetch("api/users/password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -6,11 +6,13 @@ from starlette.concurrency import iterate_in_threadpool
 from starlette.staticfiles import StaticFiles
 
 from backend.app.api.main import api_router
+from backend.app.core.config import settings
 from backend.app.utils.utils import get_logger
 
 app = FastAPI()
-app.include_router(api_router)
+app.include_router(api_router, prefix='/api')
 app.mount("/static", StaticFiles(directory="frontend/build/static"))
+app.mount("/media", StaticFiles(directory=settings.MEDIA_DIR), name="media")
 # app.mount(f'/{settings.AUDIO_DIR}', StaticFiles(directory=), name=settings.)
 
 origins = [
