@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:17000"
+    volumes:
+      - ${MOUNT_PATH}:/data
+    networks:
+      - ${DOCKER_NETWORK}
+
+  backend:
+    build: ./backend
+    volumes:
+      - ${MOUNT_PATH}:/data
+    networks:
+      - ${DOCKER_NETWORK}
+    environment:
+      - SQLALCHEMY_DATABASE_URL=${SQLALCHEMY_DATABASE_URL}
+
+  database:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - ${MOUNT_PATH}/eartalk/mysql:/var/lib/mysql
+    networks:
+      - ${DOCKER_NETWORK}
+
+networks:
+  ${DOCKER_NETWORK}:
+    external: true
