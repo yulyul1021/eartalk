@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   frontend:
+    image: eartalk_frontend   # NginX 이미지 이름 지정
     build: ./frontend
     ports:
       - "80:17000"
@@ -11,6 +12,7 @@ services:
       - ${DOCKER_NETWORK}
 
   backend:
+    image: eartalk_backend   # Gunicorn 이미지 이름 지정
     build: ./backend
     volumes:
       - ${MOUNT_PATH}:/data
@@ -20,7 +22,7 @@ services:
       - SQLALCHEMY_DATABASE_URL=${SQLALCHEMY_DATABASE_URL}
 
   database:
-    image: mysql:8.0
+    image: eartalk_database  # MySQL 이미지 이름 지정
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
